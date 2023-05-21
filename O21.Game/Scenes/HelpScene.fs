@@ -3,10 +3,11 @@ namespace O21.Game.Scenes
 open System.Numerics
 
 open O21.Game
-open O21.Game.Documents
+open O21.Game.Help
 
 open Raylib_CsLo
 open type Raylib_CsLo.Raylib
+open O21.Localization.Translations
 
 type HelpScene = {
     Content: Content
@@ -17,14 +18,15 @@ type HelpScene = {
     HelpDocument: DocumentFragment[]
 } with        
 
-    static member Init(content: Content, previous: IScene, helpDocument: DocumentFragment[]): HelpScene = {
-        Content = content
-        BackButton = Button.Create(content.UiFontRegular, "Back", Vector2(200f, 00f))
-        Previous = previous
-        OffsetY = 0f
-        TotalHeight = HelpScene.GetFragmentsHeight content helpDocument
-        HelpDocument = helpDocument
-    }
+    static member Init(content: Content, previous: IScene, helpDocument: DocumentFragment[], language: Language): HelpScene = 
+        {
+            Content = content
+            BackButton = Button.Create(content.UiFontRegular, (fun language -> (Translation language).BackLabel), Vector2(200f, 00f), language)
+            Previous = previous
+            OffsetY = 0f
+            TotalHeight = HelpScene.GetFragmentsHeight content helpDocument
+            HelpDocument = helpDocument
+        }
 
     static member private GetScrollMomentum(input: Input) =
         let mouseScrollSpeed = 5f
@@ -81,11 +83,11 @@ type HelpScene = {
 
             let scene = {
                 this with
-                    BackButton = this.BackButton.Update input
+                    BackButton = this.BackButton.Update(input, state.Language)
                     OffsetY = offsetY
             }
             let scene: IScene =
-                if scene.BackButton.State = ButtonState.Clicked then this.Previous
+                if scene.BackButton.State.InteractionState = ButtonInteractionState.Clicked then this.Previous
                 else scene
             { state with Scene = scene }
 
